@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="/socket.io/socket.io.js"></script>
+<script src="jquery.js"></script>
+</head>
+<body>
+<script>
+    var socket = io.connect(window.location.origin);
+
+    function touchstart(e){
+        touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+        data = { 'pageX' : touch['pageX'], 'pageY' : touch['pageY'] };
+        socket.emit('touchstart', data);
+    };
+
+    function touchmove(e) {
+        e.preventDefault();
+        touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+        data = { 'pageX' : touch['pageX'], 'pageY' : touch['pageY'] };
+        socket.emit('touchmove', data);
+    };
+
+    function touchend(e){
+        touch = e.originalEvent.touches[0] || e.originalEvent.changedTouches[0];
+        data = { 'pageX' : touch['pageX'], 'pageY' : touch['pageY'] };
+        socket.emit('touchend', data);
+    };
+
+    $(document).ready(function() {
+        $(document).bind('touchstart', touchstart);
+        $(document).bind('touchmove', touchmove);
+        $(document).bind('touchend', touchend);
+    })
+</script>
+</body>
+</html>

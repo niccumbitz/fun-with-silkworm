@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+		<meta name="viewport" content="width=device-width">
+
+		<link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+		<link rel="stylesheet" href="css/normalize.css" />
+		<link rel="stylesheet" href="css/font.css" />
+		<link rel="stylesheet" href="css/style.css" />
+
+		<script src="/socket.io/socket.io.js"></script>
+
+		<script src="js/jquery.js"></script>
+		<script src="js/keymaster.js"></script>
+		<script src="js/knockout.js"></script>
+		<script src="js/ZeroClipboard.js"></script>
+		<script src="js/noise.js"></script>
+		<script src="js/silk.js"></script>
+
+		<title>Silk &mdash; Interactive generative art</title>
+	</head>
+	<body>
+
+
+		<div id="page">
+			<div id="main">
+
+				<div id="intro" data-bind="css: { pristine: pristine }">
+					<div class="message">
+						<h1>Silk</h1>
+						<p class="subtitle">A magical interactive artwork</p>
+					</div>
+				</div>
+
+				<div id="bar" data-bind="css: { pristine: pristine }">
+					<div class="left">
+						<span class="control-link" data-bind="click: clear">
+							Clear
+						</span>
+
+						<span class="anchor">
+							<span class="pane" data-bind="css: { visible: dirty() && !replayUrl() }">
+								<span class="control-link" data-bind="click: share, visible: !saving()">Share</span>
+								<span class="inactive control-link" data-bind="visible: saving">Loading...</span>
+							</span>
+
+							<span class="pane" data-bind="css: { visible: replayUrl }">
+								<a class="fb icon control-link" data-bind="attr: { href: fbUrl }" target="_blank">
+									<i class="icon-large icon-facebook"></i>
+									<div class="tooltip">
+										<div class="text">Share on Facebook</div>
+									</div>
+								</a><a class="twitter icon control-link" data-bind="attr: { href: twitterUrl }" target="_blank">
+									<i class="icon-large icon-twitter"></i>
+									<div class="tooltip">
+										<div class="text">Share on Twitter</div>
+									</div>
+								</a><a class="email icon control-link" data-bind="attr: { href: emailUrl }">
+									<i class="icon-large icon-envelope-alt"></i>
+									<div class="tooltip">
+										<div class="text">Email</div>
+									</div>
+								</a><div data-bind="visible: canClip" id="copy-to-clipboard-wrap">
+									<div class="copy icon control-link" id="copy-to-clipboard">
+										<i class="icon-large icon-copy"></i>
+										<div class="tooltip">
+											<div class="text" data-bind="text: clipText"></div>
+										</div>
+									</div>
+								</div><!-- <a class="link icon control-link" data-bind="attr: { href: replayUrl }">
+									<i class="icon-large icon-link"></i>
+									<div class="tooltip">
+										<div class="text">Direct link</div>
+									</div>
+								</a> -->
+							</span>
+
+							<span class="pane" data-bind="css: { visible: canUndo }">
+								<span data-bind="click: undo" id="undo" class="control-link">Undo</span>
+							</span>
+						</span>
+					</div>
+
+					<div class="right">
+<!-- 						<span data-bind="click: toggleMusic, css: { off: muteMusic }" id="toggle-music" class="icon control-link">
+							<i class="icon-music"></i>
+						</span>
+ -->						<span class="volume icon control-link" data-bind="click: toggleSound, css: { off: muteSound }">
+							<i class="icon-volume-up"></i>
+							<i class="icon-volume-off"></i>
+						</span>
+					</div>
+				</div>
+				<div id="controls" data-bind="css: { pristine: pristine }">
+					<!-- data-bind="event: { mouseenter: bloop }"  -->
+					<div id="colors" class="swatch">
+						<div class="swatches">
+							<div data-bind="click: function() { setColor('grey') }" class="grey swatch"></div>
+							<div data-bind="click: function() { setColor('pink') }" class="pink swatch"></div>
+							<div data-bind="click: function() { setColor('yellow') }" class="yellow swatch"></div>
+							<div data-bind="click: function() { setColor('orange') }" class="orange swatch"></div>
+							<div data-bind="click: function() { setColor('green') }" class="green swatch"></div>
+							<div data-bind="click: function() { setColor('blue') }" class="blue swatch"></div>
+						</div>
+					</div>
+
+					<span id="symmetries" class="chooser">
+						<span data-bind="click: function() { setSymmetry('vertical') }, visible: symmetry() == 'none'" class="control-link none symmetry">Symmetry Off</span>
+						<span data-bind="click: function() { setSymmetry('both') }, visible: symmetry() == 'vertical'" class="control-link vertical symmetry">Vertical Symmetry</span>
+						<span data-bind="click: function() { setSymmetry('none') }, visible: symmetry() == 'both'" class="control-link both symmetry">Four-way Symmetry</span>
+					</span>
+				</div>
+
+				<div id="carbonads-container" data-bind="css: { clean: !dirty(), pristine: pristine }">
+					<div class="carbonad">
+						<div id="azcarbon"></div>
+					</div>
+				</div>
+				
+				<div id="canvii">
+					<canvas id="silk-1"></canvas>
+					<canvas id="silk-2"></canvas>
+					<canvas id="sparks"></canvas>
+			</div>
+
+			<div id="instructions" data-bind="css: { pristine: pristine }">
+				<p class="draw-something">Click <span class="amp">&amp;</span> Drag</p>
+			</div>
+
+			<div id="sound-note"  data-bind="css: { pristine: pristine }">
+				<em>Note &mdash;</em> Silk has sound. <span class="mute control-link" data-bind="click: toggleSound, css: { off: muteSound }">
+					<span class="on">Mute?</span>
+					<span class="off">Muted.</span>
+				</span>
+			</div>
+		</div>
+
+		<audio id="bg-music" preload="auto" loop="true" >
+			<source src="http://dl.dropbox.com/u/2357468/Silk%20Static/Silkura%20-May%2002%20-loop.m4a" type='audio/mp4; codecs="mp4a.40.5"'/>
+			<source src="http://dl.dropbox.com/u/2357468/Silk%20Static/Silkura%20-May%2002%20-loop.ogg" type='audio/ogg; codecs="vorbis'/>
+		</audio>
+
+		<audio id="bg-music-intro" preload="auto">
+			<source src="http://dl.dropbox.com/u/2357468/Silk%20Static//Startup%201%2016-44.m4a" type='audio/mp4; codecs="mp4a.40.5"'/>
+			<source src="http://dl.dropbox.com/u/2357468/Silk%20Static//Startup%201%2016-44.ogg" type='audio/ogg; codecs="vorbis'/>
+		</audio>
+
+	</body>
+</html>
